@@ -48,7 +48,7 @@
   /* ------------------------------------------------------------------------
      Matching — weighted score per answer, 0–1 each
      ------------------------------------------------------------------------ */
-  const WEIGHTS = { landscape: 3, difficulty: 3, duration: 2.5, region: 2.5, goal: 2, group: 1.5 };
+  const WEIGHTS = { landscape: 3, difficulty: 3, duration: 2.5, region: 2.5, weather: 1.5, goal: 2, group: 1.5 };
   const BUCKETS = question("duration").options.map((o) => o.range); // last one = multi-day
 
   function durationBuckets(trail) {
@@ -75,6 +75,7 @@
       if (v === "surprise") return 1;
       return t.region === v ? 1 : inEurope ? 0.25 : 0;
     },
+    weather: (t, v) => (v === "any" ? 1 : t.weather[v] || 0),
     goal: (t, v) => t.experiences[v] || 0,
     group: (t, v) => (t.groups.includes(v) ? 1 : 0),
   };
@@ -119,6 +120,20 @@
   const km = (n) => `≈ ${n.toLocaleString("en-GB")} km`;
   const metres = (n) => `≈ ${n.toLocaleString("en-GB")} m`;
   const primaryLandscape = (t) => Object.entries(t.landscapes).sort((a, b) => b[1] - a[1])[0][0];
+  // "Mid-June to …" reads as "mid-June to …" mid-sentence; month names keep their capital.
+  const seasonInline = (t) => t.season.replace(/^(Mid|Late|Early|All)\b/, (m) => m.toLowerCase());
+  const primaryWeather = (t) => Object.entries(t.weather).sort((a, b) => b[1] - a[1])[0][0];
+  const WEATHER_TEXT = {
+    sunny: "warm, dry and mostly sunny days",
+    mild: "mild, comfortable hiking temperatures",
+    cool: "cool, fresh and changeable weather",
+    snow: "cold conditions, with snow and ice at altitude",
+  };
+  // e.g. "Mostly cool, fresh and changeable weather" — typical conditions in the hiking season
+  const weatherText = (t) => {
+    const w = WEATHER_TEXT[primaryWeather(t)];
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  };
   const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
   const list = (items) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`);
   const strength = (s) => (s >= 0.8 ? "strong" : s >= 0.4 ? "good" : "partial");
@@ -197,6 +212,21 @@
       out.push({ key: "region", answer: label("region"), strength: strength(parts.region), text });
     }
 
+    // weather
+    {
+      const v = answers.weather;
+      const s = parts.weather;
+      const typical = WEATHER_TEXT[primaryWeather(trail)];
+      const text = v === "any"
+        ? `You're happy in any weather. In its season, ${seasonInline(trail)}, expect ${typical}.`
+        : s >= 0.8
+          ? `You prefer ${phrase("weather")}, and that's what this trail typically offers in its season, ${seasonInline(trail)}: ${typical}.`
+          : s >= 0.4
+            ? `${option("weather", v).label} days happen here, but in season expect mostly ${typical}.`
+            : `In season this trail usually brings ${typical} rather than ${phrase("weather")} — but it matched your other answers better than any trail that does.`;
+      out.push({ key: "weather", answer: label("weather"), strength: strength(s), text });
+    }
+
     // goal
     {
       const s = parts.goal;
@@ -221,7 +251,8 @@
     const diff = option("difficulty", answers.difficulty).label.toLowerCase();
     const land = LANDSCAPE_NOUN[answers.landscape];
     const goal = option("goal", answers.goal).phrase;
-    return `You selected ${diff} ${land} trails and ${goal}, hiking ${option("group", answers.group).phrase}. ` +
+    const weather = answers.weather && answers.weather !== "any" ? ` in ${option("weather", answers.weather).phrase}` : "";
+    return `You selected ${diff} ${land} trails and ${goal}${weather}, hiking ${option("group", answers.group).phrase}. ` +
       `This route offers ${lowerFirst(trail.terrain.replace(/\.$/, ""))}, rewarded by ${list(trail.viewpoints.slice(0, 2))}.`;
   }
 
@@ -250,6 +281,6 @@
   window.HikeFinder = {
     TRAILS, QUESTIONS, Store, rank, explain, summary, intro, gear, safety,
     question, option, trailById, photosOf, isComplete,
-    difficultyLabel, durationText, km, metres, primaryLandscape,
+    difficultyLabel, durationText, km, metres, primaryLandscape, weatherText,
   };
 })();

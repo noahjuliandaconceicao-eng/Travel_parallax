@@ -24,7 +24,7 @@ python3 -m http.server 8000
 
 ### Trail finder (section 04) and `/your-hike`
 
-- `js/hike-data.js` — the trail dataset (25 trails, 21 in Europe) and the six questions; figures are approximate
+- `js/hike-data.js` — the trail dataset (25 trails, 21 in Europe) and the seven questions (including weather); figures are approximate
 - `js/hike-photos.js` — generated list of trail photos (Wikimedia Commons, with author and licence)
 - `js/hike-core.js` — shared logic: answer store (sessionStorage), weighted matching, personalised explanations
 - `js/hike-finder.js` — the step-by-step questionnaire on the homepage

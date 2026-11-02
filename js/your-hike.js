@@ -50,8 +50,8 @@
     setHero({ src: `${BASE}assets/img/summit-1440.webp`, alt: "Sunlit Dolomite peak above snowfields" });
     $(".yh-hero__label").textContent = "Trail finder";
     $(".yh-hero__title").textContent = "No adventure planned yet";
-    $(".yh-hero__where").textContent = "Six questions · two minutes";
-    $(".yh-hero__intro").textContent = "Tell us which landscapes, challenge and company you're after, and we'll match you with the trail that fits — from Lofoten to the Amalfi Coast.";
+    $(".yh-hero__where").textContent = "Seven questions · two minutes";
+    $(".yh-hero__intro").textContent = "Tell us which landscapes, challenge, weather and company you're after, and we'll match you with the trail that fits — from Lofoten to the Amalfi Coast.";
     $(".yh-hero__meta").innerHTML = `<a class="btn btn--solid" href="${BASE}#plan" data-action="restart">Start the questionnaire ${ARROW}</a>`;
     $(".yh-hero__scroll").hidden = true;
     $(".yh-cta").hidden = true;
@@ -90,6 +90,7 @@
       ["Duration", `≈ ${HF.durationText(trail)}`],
       ["Elevation gain", HF.metres(trail.gainM)],
       ["Best season", trail.season],
+      ["Typical weather", HF.weatherText(trail)],
       ["Experience level", trail.level],
     ];
     $(".facts").innerHTML = facts.map(([k, v], i) => `<div class="facts__item" style="--i:${i}"><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
